@@ -44,8 +44,6 @@ public class AWSS3Service {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType(file.getContentType());
         metadata.setContentLength(file.getSize());
-        // Imposta la lunghezza del contenuto se conosciuta
-        // metadata.setContentLength(fileSize);
         try {
             final PutObjectRequest putObjectRequest = new PutObjectRequest(s3BucketName, filePath, file.getInputStream(), metadata);
             amazonS3.putObject(putObjectRequest);
@@ -80,30 +78,16 @@ public class AWSS3Service {
 
         return new InputStreamResource(response.getObjectContent().getDelegateStream());
     }
-//    @Async
-//    public String upload(final MultipartFile multipartFile, String awsDestPath) {
-//        final File file = convertMultiPartFileToFile(multipartFile);
-//        final String fileName = file.getName();
-//        log.info("Uploading file with name {}", fileName);
-//        String filePath = replaceSlash(documentProperties.getAwsS3BaseFolder()) + awsDestPath;
-//        try {
-//            final PutObjectRequest putObjectRequest = new PutObjectRequest(s3BucketName, filePath + fileName, file);
-//            amazonS3.putObject(putObjectRequest);
-//        } catch (AmazonServiceException e) {
-//            log.error("Error {} occurred while uploading file", e.getLocalizedMessage());
-//        }
-//        return URLDecoder.decode(amazonS3.getUrl(s3BucketName, filePath).toString(), StandardCharsets.UTF_8);
-//    }
-//
-//    public File convertMultiPartFileToFile(final MultipartFile multipartFile) {
-//        final File file = new File(multipartFile.getOriginalFilename());
-//        try (final FileOutputStream outputStream = new FileOutputStream(file)) {
-//            outputStream.write(multipartFile.getBytes());
-//        } catch (IOException e) {
-//            log.error("Error {} occurred while converting the multipart file", e.getLocalizedMessage());
-//        }
-//        return file;
-//    }
+
+    public void deleteFile(String url){
+        URI uri = URI.create(url);
+        S3Client s3Client = S3Client.create();
+        S3Utilities s3Utilities = s3Client.utilities();
+        S3Uri s3Uri = s3Utilities.parseUri(uri);
+        var key = s3Uri.key().get() ;
+        amazonS3.deleteObject(s3BucketName, key);
+    }
+
 
     private String replaceSlash(String filePath) {
         final String path = filePath.replaceAll("\\\\", "/");
